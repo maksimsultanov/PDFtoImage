@@ -17,19 +17,31 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("hello world!");
         while (true) {
+            //set work directory
             var dirName = "./src/PDFtoJPG";
             String[] lsits;
+            // take list of pdf
             try (Stream<Path> paths = Files.walk(Paths.get(dirName))) {
                 lsits = paths.map(Path::toString).filter(f -> f.endsWith(".pdf")).toArray(String[]::new);
             }
+            //start work with pdf
             for (String sourceFile : lsits
             ) {
                 try {
+                    //create document
                     PDDocument sourceDocument = PDDocument.load(new File(sourceFile));
                     PDFRenderer sourceRender = new PDFRenderer(sourceDocument);
+                    //take index start file name
+                    int indexFile = sourceFile.lastIndexOf('/');
+                    //create new dir
+                    String newDir = sourceFile.substring(0, indexFile) + "/JPG";
+                    new File(newDir).mkdir();
+                    // set new dir for save jpg files
+                    sourceFile = newDir + sourceFile.substring(indexFile);
+                    // set page counter
                     int pageIndex = 0;
+                    //create jpg
                     for (PDPage singelePage : sourceDocument.getDocumentCatalog().getPages()) {
                         BufferedImage imagePage = sourceRender.renderImageWithDPI(pageIndex, 300, ImageType.RGB);
                         ImageIO.write(imagePage, "jpg", new File(sourceFile + "-" + (++pageIndex) + ".jpg"));
@@ -38,8 +50,8 @@ public class Main {
                     e.printStackTrace();
                 }
             }
+            //create wait timer
             Thread.sleep(300000);
         }
     }
 }
-
